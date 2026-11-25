@@ -1,0 +1,17 @@
+{
+  "id": "krys-quirks",
+  "title": "Krys' Quirks",
+  "description": "House rules for the Ahvantir campaign: Inspiring Success and Arcane Exhaustion. Each rule can be switched on or off in the module settings.",
+  "version": "1.0.0",
+  "authors": [{ "name": "Krys" }],
+  "compatibility": { "minimum": "13", "verified": "14" },
+  "relationships": {
+    "systems": [{ "id": "dnd5e", "type": "system", "compatibility": { "minimum": "5.0.0" } }]
+  },
+  "esmodules": ["scripts/krys-quirks.mjs"],
+  "socket": true,
+  "url": "https://github.com/DJ-JackJack/Krys-Quirks",
+  "manifest": "https://github.com/DJ-JackJack/Krys-Quirks/releases/latest/download/module.json",
+  "download": "https://github.com/DJ-JackJack/Krys-Quirks/releases/download/v1.0.0/krys-quirks.zip",
+  "bugs": "https://github.com/DJ-JackJack/Krys-Quirks/issues"
+}

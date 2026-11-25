@@ -1,0 +1,47 @@
+name: Release
+
+# Runs when a GitHub release is published (tag like v1.0.0).
+# Stamps the version and download URL into module.json, builds krys-quirks.zip
+# with module.json at the zip root (as Foundry expects), and attaches both files
+# to the release so the manifest URL
+#   https://github.com/<owner>/<repo>/releases/latest/download/module.json
+# always points at the newest version.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stamp version and download URL into module.json
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          VERSION="${TAG#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag '$TAG' must look like v1.2.3"
+            exit 1
+          fi
+          DOWNLOAD="https://github.com/${REPO}/releases/download/${TAG}/krys-quirks.zip"
+          jq --arg v "$VERSION" --arg d "$DOWNLOAD" '.version = $v | .download = $d' module.json > module.tmp.json
+          mv module.tmp.json module.json
+          cat module.json
+
+      - name: Build krys-quirks.zip
+        run: |
+          zip -r krys-quirks.zip module.json scripts README.md
+          unzip -l krys-quirks.zip
+
+      - name: Attach module.json and krys-quirks.zip to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" module.json krys-quirks.zip --clobber

@@ -1,0 +1,6 @@
+# Private notes: server address, user and actor ids. Never commit to this public repo.
+*HANDOFF*.md
+
+# Build output and local archives
+*.zip
+dist/
