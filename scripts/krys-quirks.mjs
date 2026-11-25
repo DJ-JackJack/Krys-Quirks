@@ -132,6 +132,11 @@ async function grantInspiration(targetUuid) {
 /* -------------------------------------------- */
 
 const exhaustionCost = (level) => Math.max(1, Math.floor(level / 2));
+const ordinal = (n) => {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
 
 function isPreparedLeveledSpell(item) {
   if (item?.type !== "spell" || !(item.system.level > 0)) return false;
@@ -178,7 +183,7 @@ async function offerArcaneExhaustion(activity, level) {
   const current = actor.system.attributes?.exhaustion ?? 0;
   const confirmed = await DialogV2.confirm({
     window: { title: "Arcane Exhaustion", icon: "fa-solid fa-bolt" },
-    content: `<p>${actor.name} has no level ${level} spell slot left. Attempt to cast <strong>${activity.item.name}</strong> anyway?</p>`
+    content: `<p>${actor.name} has no ${ordinal(level)}-level spell slot left. Attempt to cast <strong>${activity.item.name}</strong> anyway?</p>`
       + `<p>Intelligence (Arcana) check, DC ${dc}. Success or failure, ${actor.name} gains ${cost} Exhaustion (${current} → ${Math.min(6, current + cost)}).</p>`,
     rejectClose: false
   });
@@ -194,7 +199,7 @@ async function chooseArcaneExhaustion(item) {
   const levelOptions = [];
   for (let l = item.system.level; l <= 9; l++) {
     const cost = exhaustionCost(l);
-    levelOptions.push(`<option value="${l}">Level ${l}: DC ${10 + l}, ${cost} Exhaustion (${current} → ${Math.min(6, current + cost)})</option>`);
+    levelOptions.push(`<option value="${l}">${ordinal(l)} level: DC ${10 + l}, ${cost} Exhaustion (${current} → ${Math.min(6, current + cost)})</option>`);
   }
   const activityField = activities.length > 1
     ? `<div class="form-group"><label>Activity</label><select name="activity">${activities.map((a) => `<option value="${a.id}">${a.name}</option>`).join("")}</select></div>`
@@ -228,7 +233,7 @@ async function attemptArcaneExhaustion(activity, level) {
   const rolls = await actor.rollSkill(
     { skill: "arc", ability: "int", target: dc },
     { configure: false },
-    { data: { flavor: `Arcane Exhaustion: ${item.name} at level ${level} (DC ${dc})` } }
+    { data: { flavor: `Arcane Exhaustion: ${item.name} at ${ordinal(level)} level (DC ${dc})` } }
   );
   const roll = Array.isArray(rolls) ? rolls[0] : rolls;
   const success = !!roll && roll.total >= dc;
@@ -240,7 +245,7 @@ async function attemptArcaneExhaustion(activity, level) {
 
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
-    content: `<p><strong>Arcane Exhaustion.</strong> ${actor.name} reaches past their spent magic for <em>${item.name}</em> at level ${level}. `
+    content: `<p><strong>Arcane Exhaustion.</strong> ${actor.name} reaches past their spent magic for <em>${item.name}</em> at ${ordinal(level)} level. `
       + (success ? "The spell holds." : "The spell fizzles and has no effect.")
       + ` ${actor.name} gains ${cost} Exhaustion (now ${after}).</p>`
   });
